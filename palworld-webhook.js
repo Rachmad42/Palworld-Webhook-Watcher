@@ -68,10 +68,14 @@ async function tick() {
     const now = new Date();
     const data = await collectPalworldData(now);
     const variables = buildVariables(data, now);
-    const payload = buildDiscordPayload(variables, data);
+    const payload = buildDiscordPayload(variables);
 
     await upsertWebhookMessage(payload);
     await runDueRestart(now, variables);
+
+    if (data.errors.length > 0) {
+      console.warn(`Palworld REST warnings: ${data.errors.join(' | ')}`);
+    }
 
     console.log(
       `[${now.toISOString()}] Updated Discord status: ${variables.status} (${data.requestCount} REST request${data.requestCount === 1 ? '' : 's'})`
@@ -270,22 +274,17 @@ function buildVariables(data, now) {
     nextRestartRelative: nextRestartDate ? formatDiscordTime(nextRestartDate, 'R') : 'Not scheduled',
     lastUpdated: formatDiscordTime(now, 'F'),
     lastUpdatedIso: now.toISOString(),
-    lastUpdatedRelative: formatDiscordTime(now, 'R'),
-    errorSummary: data.errors.length > 0 ? data.errors.slice(0, 2).join('\n') : 'None'
+    lastUpdatedRelative: formatDiscordTime(now, 'R')
   };
 }
 
-function buildDiscordPayload(variables, data) {
+function buildDiscordPayload(variables) {
   const isOnline = variables.status === 'Online';
   const payload = applyTemplateDeep(loadMessageTemplate(), variables);
   normalizeDiscordPayload(payload);
 
   if (!isOnline) {
     payload.embeds = [];
-
-    if (data.errors.length > 0) {
-      payload.content = truncate(`${payload.content}\n-# Error:\n\`\`\`${variables.errorSummary}\`\`\``, 2000);
-    }
   }
 
   return payload;
