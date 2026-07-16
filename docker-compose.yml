@@ -20,7 +20,6 @@ services:
       MESSAGE_TEMPLATE_FILE: /app/config/message-template.jsonc
       ICONS_FILE: /app/config/icons.jsonc
       TIME_ZONE: Asia/Jakarta
-      TZ: Asia/Jakarta
       RESTART_ENABLED: false
       RESTART_TIMES: "04:00"
       RESTART_WAIT_SECONDS: 300

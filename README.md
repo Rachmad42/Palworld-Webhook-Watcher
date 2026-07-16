@@ -2,57 +2,17 @@
 
 ![Palworld Webhook Watcher Discord preview](Screenshot%202026-07-17%20002440.png)
 
-Discord webhook status updater for a Palworld dedicated server. It reads the Palworld REST API, updates one Discord webhook message, shows player/server status, and can optionally trigger scheduled restarts.
+Discord webhook status updater for a Palworld dedicated server. It updates one Discord message with server status, players, performance, uptime, world info, and optional restart schedule.
 
 ## Features
 
-- Updates an existing Discord webhook message instead of spamming new messages.
-- Shows server status, player count, player list, FPS, uptime, world day, and next restart.
-- Supports custom Discord message layout through `message-template.jsonc`.
-- Supports custom icons/emojis through `icons.jsonc`.
-- Can run directly with Node.js or inside Docker Compose.
-- Persists Discord message ID and restart state.
+- One persistent Discord webhook message.
+- Palworld REST API status, players, FPS, uptime, and world info.
+- Optional scheduled restart.
+- Docker Compose ready.
+- Editable Discord template and icons from `./config`.
 
-## Requirements
-
-- Node.js 18 or newer, or Docker with Docker Compose.
-- A Discord webhook URL.
-- Palworld REST API enabled and reachable from where this app runs.
-
-## Run With Node.js
-
-Copy the example environment file if you want to run without Docker:
-
-```bash
-cp .env.example .env
-```
-
-Edit `.env` and set at least:
-
-```env
-DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/...
-PALWORLD_REST_BASE_URL=http://your-palworld-server:8212/v1/api
-PALWORLD_REST_USERNAME=admin
-PALWORLD_REST_PASSWORD=your-rest-password
-PALWORLD_GAME_ADDRESS=your-palworld-server:8211
-TIME_ZONE=Asia/Jakarta
-```
-
-Do not commit `.env`. It contains secrets.
-
-```bash
-npm start
-```
-
-To check JavaScript syntax:
-
-```bash
-npm run check
-```
-
-## Run With Docker Compose
-
-For normal Docker use, you only need a `docker-compose.yml` file. You do not need to create `.env` and you do not need to clone this repository if you use the published Docker image.
+## Docker Compose
 
 Create `docker-compose.yml`:
 
@@ -63,23 +23,18 @@ services:
     container_name: palworld-webhook-watcher
     restart: unless-stopped
     environment:
-      NODE_ENV: production
       DISCORD_WEBHOOK_URL: https://discord.com/api/webhooks/your-webhook-id/your-webhook-token
-      PALWORLD_REST_BASE_URL: http://host.docker.internal:8212/v1/api
+      PALWORLD_REST_BASE_URL: http://your-palworld-server:8212/v1/api
       PALWORLD_REST_USERNAME: admin
       PALWORLD_REST_PASSWORD: change-me
-      PALWORLD_GAME_ADDRESS: 127.0.0.1:8211
+      PALWORLD_GAME_ADDRESS: your-palworld-server:8211
       REFRESH_INTERVAL_SECONDS: 30
       REQUEST_TIMEOUT_SECONDS: 10
-      METRICS_REFRESH_SECONDS: 30
-      PLAYERS_REFRESH_SECONDS: 30
-      STATIC_REFRESH_SECONDS: 600
       MESSAGE_ID_FILE: /app/data/.discord-message-id
       STATE_FILE: /app/data/.palworld-webhook-state.json
       MESSAGE_TEMPLATE_FILE: /app/config/message-template.jsonc
       ICONS_FILE: /app/config/icons.jsonc
       TIME_ZONE: Asia/Jakarta
-      TZ: Asia/Jakarta
       RESTART_ENABLED: false
       RESTART_TIMES: "04:00"
       RESTART_WAIT_SECONDS: 300
@@ -88,145 +43,91 @@ services:
     volumes:
       - webhook-data:/app/data
       - ./config:/app/config
-    extra_hosts:
-      - host.docker.internal:host-gateway
 
 volumes:
   webhook-data:
 ```
 
-Edit the values under `environment` before starting the container. Keep this compose file private if it contains your Discord webhook URL or REST password.
-
 Start:
 
 ```bash
 docker compose up -d
-```
-
-View logs:
-
-```bash
 docker compose logs -f palworld-webhook
 ```
 
-Stop:
-
-```bash
-docker compose down
-```
-
-The Docker setup stores `.discord-message-id` and `.palworld-webhook-state.json` in the `webhook-data` volume so they survive container recreation.
-
-## Build From Source
-
-If you cloned this repository and want to build the image locally, use the included `docker-compose.yml`:
-
-```bash
-docker compose up -d --build
-```
-
-You can also copy `docker-compose.example.yml` as a starting point for a prebuilt-image deployment.
-
-## Publish Docker Image
-
-This repository includes a GitHub Actions workflow at `.github/workflows/docker-publish.yml`. It publishes the image to GitHub Container Registry on pushes to `main`, version tags like `v1.0.0`, or manual workflow runs.
-
-After pushing to GitHub, the image will be available as:
-
-```text
-ghcr.io/rachmad42/palworld-webhook-watcher:latest
-```
-
-If the package is private, open the package page in GitHub and change its visibility to public so users can pull it without logging in.
-
-## Docker Networking Notes
-
-If Palworld REST API runs on the same host as Docker, use:
-
-```yaml
-environment:
-  PALWORLD_REST_BASE_URL: http://host.docker.internal:8212/v1/api
-```
-
-If Palworld REST API runs on another VPS/server, use its public or private reachable IP:
-
-```yaml
-environment:
-  PALWORLD_REST_BASE_URL: http://158.178.237.188:8212/v1/api
-  PALWORLD_GAME_ADDRESS: 158.178.237.188:8211
-```
-
-If this app and Palworld run in the same Docker network, use the Palworld service/container name:
-
-```yaml
-environment:
-  PALWORLD_REST_BASE_URL: http://palworld:8212/v1/api
-```
-
-Avoid `127.0.0.1` from inside Docker unless the REST API is running in the same container. Inside a container, `127.0.0.1` means that container itself.
-
-## Scheduled Restart
-
-Enable scheduled restart in `docker-compose.yml`:
-
-```yaml
-environment:
-  RESTART_ENABLED: true
-  RESTART_TIMES: "04:00"
-  RESTART_WAIT_SECONDS: 300
-  TIME_ZONE: Asia/Jakarta
-  TZ: Asia/Jakarta
-```
-
-`RESTART_TIMES` uses `HH:mm` format and follows `TIME_ZONE`. Multiple times can be separated with commas:
-
-```yaml
-environment:
-  RESTART_TIMES: "04:00,16:00"
-```
-
-## Customization
-
-The Docker compose setup mounts `./config` to `/app/config`. On first start, the app creates these editable files automatically:
-
-```text
-config/message-template.jsonc
-config/icons.jsonc
-```
-
-Edit those files on the host to customize the Discord message layout or icons. If either path already exists as a folder because of an older compose file, remove the folder first and restart the container.
-
-After changing these files in Docker, restart the container:
-
-```bash
-docker compose restart palworld-webhook
-```
-
-## Troubleshooting
-
-Check which REST URL the container is using:
-
-```bash
-docker compose exec palworld-webhook printenv PALWORLD_REST_BASE_URL
-```
-
-If logs show `Unauthorized`, check `PALWORLD_REST_USERNAME` and `PALWORLD_REST_PASSWORD`.
-
-If logs show `fetch failed` or timeout, check that the Palworld REST API URL is reachable from the container/VPS and that port `8212` is open.
-
-If next restart time appears shifted, confirm:
-
-```yaml
-environment:
-  TIME_ZONE: Asia/Jakarta
-  TZ: Asia/Jakarta
-```
-
-Then pull the latest image and recreate the container:
+Update:
 
 ```bash
 docker compose pull
 docker compose up -d
 ```
 
-If you are building from source, use `docker compose up -d --build` instead.
+## REST API URL
+
+Use the URL that is reachable from the webhook container:
+
+```yaml
+# Palworld REST on another VPS/server
+PALWORLD_REST_BASE_URL: http://your-palworld-server-ip:8212/v1/api
+
+# Palworld REST on the Docker host
+PALWORLD_REST_BASE_URL: http://host.docker.internal:8212/v1/api
+
+# Palworld REST in the same Docker network
+PALWORLD_REST_BASE_URL: http://palworld:8212/v1/api
+```
+
+Avoid `127.0.0.1` inside Docker unless the REST API is in the same container.
+
+## Custom Template And Icons
+
+On first start, the app creates:
+
+```text
+config/message-template.jsonc
+config/icons.jsonc
+```
+
+Edit those files, then restart:
+
+```bash
+docker compose restart palworld-webhook
+```
+
+## Scheduled Restart
+
+Enable it in `docker-compose.yml`:
+
+```yaml
+RESTART_ENABLED: true
+RESTART_TIMES: "04:00"
+TIME_ZONE: Asia/Jakarta
+```
+
+Multiple times:
+
+```yaml
+RESTART_TIMES: "04:00,16:00"
+```
+
+## Troubleshooting
+
+Check the URL used by the container:
+
+```bash
+docker compose exec palworld-webhook printenv PALWORLD_REST_BASE_URL
+```
+
+- `Unauthorized`: check `PALWORLD_REST_USERNAME` and `PALWORLD_REST_PASSWORD`.
+- `fetch failed` or timeout: check the REST URL and port `8212`.
+- `EACCES` on `/app/config`: run `sudo chown -R 1000:1000 config`, then restart.
+- Wrong restart time: check `TIME_ZONE`.
+
+## Run Without Docker
+
+```bash
+cp .env.example .env
+npm start
+```
+
+Requires Node.js 18 or newer.
