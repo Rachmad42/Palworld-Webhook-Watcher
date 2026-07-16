@@ -1,0 +1,12 @@
+.git
+.agents
+.codex
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.env
+.discord-message-id
+.palworld-webhook-state.json
+Screenshot*.png
+*.log

@@ -1,0 +1,19 @@
+{
+  // Edit these Discord emoji strings to customize every title/field icon.
+  // You can use standard Discord shortcode emoji, Unicode emoji, or custom emoji like <:name:id>.
+  "title": "`🛰️`",
+  "connection": "`🔗`",
+  "status": "`📡`",
+  "players": "`👥`",
+  "performance": "`📊`",
+  "world": "`🗺️`",
+  "server": "`🖥️`",
+  "restart": "`🕒`",
+  "clock": "`⏱️`",
+  "statusOnline": "<a:online:1382546219963908116>",
+  "statusOffline": "<a:offline:1382546138426769549>",
+  "pingGreen": "<:color_Green:1160950063921631323>",
+  "pingYellow": "<:color_Yellow:1160950053712707685>",
+  "pingRed": "<a:offline:1382546138426769549>",
+  "level": "`🔹`"
+}

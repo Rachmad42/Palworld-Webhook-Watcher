@@ -1,0 +1,52 @@
+{
+  // Combined Discord message: content is the clean header, embeds hold the detailed server info.
+  // Discord markdown works in content: # heading, -# subtext, ``` code blocks, custom emoji, timestamps.
+  //
+  // Available variables:
+  // {status}, {statusIcon}
+  // {iconServerBadge}, {iconConnection}, {iconPlayers}, {iconClock}
+  // {iconPerformance}, {iconWorld}, {iconRestart}, {iconLevel}
+  // {serverName}, {description}, {gameAddress}, {version}, {currentPlayers}, {maxPlayers}
+  // {playerList}, {serverFps}, {frameTimeMs}, {uptimeHuman}
+  // {days}, {baseCamps}, {difficulty}, {nextRestart}, {nextRestartRelative}, {lastUpdatedRelative}
+  //
+  // Keep backend-only details like REST request count or cache timing out of the public message.
+  "username": "Palworld Server",
+  "content": "## {serverName}\n-# {statusIcon} {status}\n```text\n{gameAddress}\n```\n-# {iconPlayers} {currentPlayers}/{maxPlayers} players | {iconClock} updated {lastUpdatedRelative}\n-# {description}",
+  "embeds": [
+    {
+      "title": "",
+      "description": "## {iconPlayers} Player List\n{playerList}",
+      "color": "{embedColor}",
+      "fields": [
+        {
+          "name": "{iconPerformance} Performance",
+          "value": "FPS: `{serverFps}`\nFrame Time: `{frameTimeMs}`\nUptime: `{uptimeHuman}`",
+          "inline": true
+        },
+        {
+          "name": "{iconWorld} World",
+          "value": "Day: `{days}`\nBase Camps: `{baseCamps}`\nDifficulty: `{difficulty}`",
+          "inline": true
+        },
+        {
+          "name": "{iconServer} Server",
+          "value": "Version: `{version}`\nRegion: `{region}`",
+          "inline": true
+        },
+        {
+          "name": "{iconRestart} Next Restart",
+          "value": "{nextRestart}\n{nextRestartRelative}",
+          "inline": false
+        }
+      ],
+      "footer": {
+        "text": "{description}"
+      },
+      "timestamp": "{lastUpdatedIso}"
+    }
+  ],
+  "allowed_mentions": {
+    "parse": []
+  }
+}
