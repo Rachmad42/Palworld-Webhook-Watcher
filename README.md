@@ -94,12 +94,6 @@ volumes:
   webhook-data:
 ```
 
-Replace the image name with your published image, for example:
-
-```yaml
-image: ghcr.io/rachmad42/palworld-webhook-watcher:latest
-```
-
 Edit the values under `environment` before starting the container. Keep this compose file private if it contains your Discord webhook URL or REST password.
 
 Start:
