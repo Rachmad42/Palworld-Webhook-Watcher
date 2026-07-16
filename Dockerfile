@@ -12,7 +12,7 @@ RUN npm install --omit=dev --ignore-scripts \
 
 COPY --chown=node:node palworld-webhook.js message-template.jsonc icons.jsonc ./
 
-RUN mkdir -p /app/data \
+RUN mkdir -p /app/data /app/config \
   && chown -R node:node /app
 
 USER node

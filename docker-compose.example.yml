@@ -17,8 +17,8 @@ services:
       STATIC_REFRESH_SECONDS: 600
       MESSAGE_ID_FILE: /app/data/.discord-message-id
       STATE_FILE: /app/data/.palworld-webhook-state.json
-      MESSAGE_TEMPLATE_FILE: /app/message-template.jsonc
-      ICONS_FILE: /app/icons.jsonc
+      MESSAGE_TEMPLATE_FILE: /app/config/message-template.jsonc
+      ICONS_FILE: /app/config/icons.jsonc
       TIME_ZONE: Asia/Jakarta
       TZ: Asia/Jakarta
       RESTART_ENABLED: false
@@ -28,6 +28,7 @@ services:
       MAX_PLAYER_NAMES: 10
     volumes:
       - webhook-data:/app/data
+      - ./config:/app/config
     extra_hosts:
       - host.docker.internal:host-gateway
 

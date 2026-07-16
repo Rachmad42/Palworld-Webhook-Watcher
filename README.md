@@ -76,8 +76,8 @@ services:
       STATIC_REFRESH_SECONDS: 600
       MESSAGE_ID_FILE: /app/data/.discord-message-id
       STATE_FILE: /app/data/.palworld-webhook-state.json
-      MESSAGE_TEMPLATE_FILE: /app/message-template.jsonc
-      ICONS_FILE: /app/icons.jsonc
+      MESSAGE_TEMPLATE_FILE: /app/config/message-template.jsonc
+      ICONS_FILE: /app/config/icons.jsonc
       TIME_ZONE: Asia/Jakarta
       TZ: Asia/Jakarta
       RESTART_ENABLED: false
@@ -87,6 +87,7 @@ services:
       MAX_PLAYER_NAMES: 10
     volumes:
       - webhook-data:/app/data
+      - ./config:/app/config
     extra_hosts:
       - host.docker.internal:host-gateway
 
@@ -186,9 +187,14 @@ environment:
 
 ## Customization
 
-Edit `message-template.jsonc` to change the Discord message structure.
+The Docker compose setup mounts `./config` to `/app/config`. On first start, the app creates these editable files automatically:
 
-Edit `icons.jsonc` to change icons or Discord custom emojis.
+```text
+config/message-template.jsonc
+config/icons.jsonc
+```
+
+Edit those files on the host to customize the Discord message layout or icons. If either path already exists as a folder because of an older compose file, remove the folder first and restart the container.
 
 After changing these files in Docker, restart the container:
 

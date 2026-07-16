@@ -6,10 +6,10 @@ services:
     environment:
       NODE_ENV: production
       DISCORD_WEBHOOK_URL: https://discord.com/api/webhooks/1526916775986335874/LlLVRCnWmEnImCS4BWSa85iRQnJQaw4YR4K98NCHHZ2VCFBxWCBrArDfjUnQ9bgaMvX_
-      PALWORLD_REST_BASE_URL: http://host.docker.internal:8212/v1/api
+      PALWORLD_REST_BASE_URL: http://158.178.237.188:8212/v1/api
       PALWORLD_REST_USERNAME: admin
       PALWORLD_REST_PASSWORD: paladmin
-      PALWORLD_GAME_ADDRESS: 127.0.0.1:8211
+      PALWORLD_GAME_ADDRESS: 158.178.237.188:8211
       REFRESH_INTERVAL_SECONDS: 60
       REQUEST_TIMEOUT_SECONDS: 10
       METRICS_REFRESH_SECONDS: 30
@@ -17,8 +17,8 @@ services:
       STATIC_REFRESH_SECONDS: 600
       MESSAGE_ID_FILE: /app/data/.discord-message-id
       STATE_FILE: /app/data/.palworld-webhook-state.json
-      MESSAGE_TEMPLATE_FILE: /app/message-template.jsonc
-      ICONS_FILE: /app/icons.jsonc
+      MESSAGE_TEMPLATE_FILE: /app/config/message-template.jsonc
+      ICONS_FILE: /app/config/icons.jsonc
       TIME_ZONE: Asia/Jakarta
       TZ: Asia/Jakarta
       RESTART_ENABLED: false
@@ -28,6 +28,7 @@ services:
       MAX_PLAYER_NAMES: 10
     volumes:
       - webhook-data:/app/data
+      - ./config:/app/config
     extra_hosts:
       - host.docker.internal:host-gateway
 

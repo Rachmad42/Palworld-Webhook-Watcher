@@ -40,6 +40,8 @@ main().catch((error) => {
 });
 
 async function main() {
+  ensureConfigFiles();
+
   console.log('Palworld Discord webhook updater started.');
   console.log(`REST API: ${config.restBaseUrl}`);
   console.log(`Game address: ${config.gameAddress}`);
@@ -386,6 +388,32 @@ function defaultMessageTemplate() {
       parse: []
     }
   };
+}
+
+function ensureConfigFiles() {
+  ensureConfigFile(config.messageTemplateFile, path.join(__dirname, 'message-template.jsonc'));
+  ensureConfigFile(config.iconsFile, path.join(__dirname, 'icons.jsonc'));
+}
+
+function ensureConfigFile(filePath, defaultFilePath) {
+  const targetPath = path.resolve(process.cwd(), filePath);
+  const sourcePath = path.resolve(defaultFilePath);
+
+  if (targetPath === sourcePath) {
+    return;
+  }
+
+  if (fs.existsSync(targetPath)) {
+    if (fs.statSync(targetPath).isDirectory()) {
+      throw new Error(`${filePath} is a directory. Remove it and restart so the default file can be created.`);
+    }
+
+    return;
+  }
+
+  fs.mkdirSync(path.dirname(targetPath), { recursive: true });
+  fs.copyFileSync(sourcePath, targetPath);
+  console.log(`Created default config file: ${filePath}`);
 }
 
 function applyTemplateDeep(value, variables) {
