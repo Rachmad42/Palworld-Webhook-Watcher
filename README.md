@@ -19,9 +19,9 @@ Discord webhook status updater for a Palworld dedicated server. It reads the Pal
 - A Discord webhook URL.
 - Palworld REST API enabled and reachable from where this app runs.
 
-## Setup
+## Run With Node.js
 
-Copy the example environment file:
+Copy the example environment file if you want to run without Docker:
 
 ```bash
 cp .env.example .env
@@ -40,8 +40,6 @@ TIME_ZONE=Asia/Jakarta
 
 Do not commit `.env`. It contains secrets.
 
-## Run With Node.js
-
 ```bash
 npm start
 ```
@@ -54,20 +52,7 @@ npm run check
 
 ## Run With Docker Compose
 
-For normal use, you only need a `.env` file and a `docker-compose.yml` file. You do not need to clone this repository if you use the published Docker image.
-
-Create `.env`:
-
-```env
-DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/...
-PALWORLD_REST_BASE_URL=http://your-palworld-server:8212/v1/api
-PALWORLD_REST_USERNAME=admin
-PALWORLD_REST_PASSWORD=your-rest-password
-PALWORLD_GAME_ADDRESS=your-palworld-server:8211
-TIME_ZONE=Asia/Jakarta
-RESTART_ENABLED=false
-RESTART_TIMES=04:00
-```
+For normal Docker use, you only need a `docker-compose.yml` file. You do not need to create `.env` and you do not need to clone this repository if you use the published Docker image.
 
 Create `docker-compose.yml`:
 
@@ -77,18 +62,29 @@ services:
     image: ghcr.io/rachmad42/palworld-webhook-watcher:latest
     container_name: palworld-webhook-watcher
     restart: unless-stopped
-    env_file:
-      - .env
     environment:
       NODE_ENV: production
-      TZ: ${TIME_ZONE:-Asia/Jakarta}
-      PALWORLD_REST_BASE_URL: ${PALWORLD_REST_BASE_URL:-http://host.docker.internal:8212/v1/api}
-      PALWORLD_GAME_ADDRESS: ${PALWORLD_GAME_ADDRESS:-127.0.0.1:8211}
+      DISCORD_WEBHOOK_URL: https://discord.com/api/webhooks/your-webhook-id/your-webhook-token
+      PALWORLD_REST_BASE_URL: http://host.docker.internal:8212/v1/api
+      PALWORLD_REST_USERNAME: admin
+      PALWORLD_REST_PASSWORD: change-me
+      PALWORLD_GAME_ADDRESS: 127.0.0.1:8211
+      REFRESH_INTERVAL_SECONDS: 30
+      REQUEST_TIMEOUT_SECONDS: 10
+      METRICS_REFRESH_SECONDS: 30
+      PLAYERS_REFRESH_SECONDS: 30
+      STATIC_REFRESH_SECONDS: 600
       MESSAGE_ID_FILE: /app/data/.discord-message-id
       STATE_FILE: /app/data/.palworld-webhook-state.json
       MESSAGE_TEMPLATE_FILE: /app/message-template.jsonc
       ICONS_FILE: /app/icons.jsonc
-      TIME_ZONE: ${TIME_ZONE:-Asia/Jakarta}
+      TIME_ZONE: Asia/Jakarta
+      TZ: Asia/Jakarta
+      RESTART_ENABLED: false
+      RESTART_TIMES: "04:00"
+      RESTART_WAIT_SECONDS: 300
+      RESTART_MESSAGE: Scheduled restart in 5 minutes. Please log out safely.
+      MAX_PLAYER_NAMES: 10
     volumes:
       - webhook-data:/app/data
     extra_hosts:
@@ -103,6 +99,8 @@ Replace the image name with your published image, for example:
 ```yaml
 image: ghcr.io/rachmad42/palworld-webhook-watcher:latest
 ```
+
+Edit the values under `environment` before starting the container. Keep this compose file private if it contains your Discord webhook URL or REST password.
 
 Start:
 
@@ -150,40 +148,46 @@ If the package is private, open the package page in GitHub and change its visibi
 
 If Palworld REST API runs on the same host as Docker, use:
 
-```env
-PALWORLD_REST_BASE_URL=http://host.docker.internal:8212/v1/api
+```yaml
+environment:
+  PALWORLD_REST_BASE_URL: http://host.docker.internal:8212/v1/api
 ```
 
 If Palworld REST API runs on another VPS/server, use its public or private reachable IP:
 
-```env
-PALWORLD_REST_BASE_URL=http://158.178.237.188:8212/v1/api
-PALWORLD_GAME_ADDRESS=158.178.237.188:8211
+```yaml
+environment:
+  PALWORLD_REST_BASE_URL: http://158.178.237.188:8212/v1/api
+  PALWORLD_GAME_ADDRESS: 158.178.237.188:8211
 ```
 
 If this app and Palworld run in the same Docker network, use the Palworld service/container name:
 
-```env
-PALWORLD_REST_BASE_URL=http://palworld:8212/v1/api
+```yaml
+environment:
+  PALWORLD_REST_BASE_URL: http://palworld:8212/v1/api
 ```
 
 Avoid `127.0.0.1` from inside Docker unless the REST API is running in the same container. Inside a container, `127.0.0.1` means that container itself.
 
 ## Scheduled Restart
 
-Enable scheduled restart in `.env`:
+Enable scheduled restart in `docker-compose.yml`:
 
-```env
-RESTART_ENABLED=true
-RESTART_TIMES=04:00
-RESTART_WAIT_SECONDS=300
-TIME_ZONE=Asia/Jakarta
+```yaml
+environment:
+  RESTART_ENABLED: true
+  RESTART_TIMES: "04:00"
+  RESTART_WAIT_SECONDS: 300
+  TIME_ZONE: Asia/Jakarta
+  TZ: Asia/Jakarta
 ```
 
 `RESTART_TIMES` uses `HH:mm` format and follows `TIME_ZONE`. Multiple times can be separated with commas:
 
-```env
-RESTART_TIMES=04:00,16:00
+```yaml
+environment:
+  RESTART_TIMES: "04:00,16:00"
 ```
 
 ## Customization
@@ -212,8 +216,10 @@ If logs show `fetch failed` or timeout, check that the Palworld REST API URL is 
 
 If next restart time appears shifted, confirm:
 
-```env
-TIME_ZONE=Asia/Jakarta
+```yaml
+environment:
+  TIME_ZONE: Asia/Jakarta
+  TZ: Asia/Jakarta
 ```
 
 Then pull the latest image and recreate the container:
